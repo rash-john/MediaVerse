@@ -17,7 +17,7 @@ data class PodcastDto(
     val id: String,
     val image: String,
     val is_claimed: Boolean,
-    val itunes_id: Int,
+    val itunes_id: Long,
     val language: String,
     val latest_episode_id: String,
     val latest_pub_date_ms: Long,

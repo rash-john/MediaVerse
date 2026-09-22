@@ -22,5 +22,12 @@ suspend inline fun <reified T> safeCall(
         return Result.Error(NetworkError.Unknown())
     }
 
-    return responseToResult(response)
+    return try {
+        responseToResult(response)
+    }catch (_: SerializationException){
+        Result.Error(NetworkError.SerializationError)
+    }catch (_: Exception){
+        currentCoroutineContext().ensureActive()
+        Result.Error(NetworkError.Unknown(response.status.value))
+    }
 }

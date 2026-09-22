@@ -16,7 +16,8 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
@@ -107,11 +108,13 @@ fun Int.toSecondToMinute(): String {
 }
 
 fun Modifier.shimmerEffect(): Modifier = composed {
-    val shimmerColors = listOf(
-        Color.LightGray.copy(alpha = 0.9f),
-        Color.LightGray.copy(alpha = 0.2f),
-        Color.LightGray.copy(alpha = 0.9f),
-    )
+    val shimmerColors = remember {
+        listOf(
+            Color.LightGray.copy(alpha = 0.9f),
+            Color.LightGray.copy(alpha = 0.2f),
+            Color.LightGray.copy(alpha = 0.9f),
+        )
+    }
 
     val transition = rememberInfiniteTransition(label = "ShimmerTransition")
     val translateAnim = transition.animateFloat(
@@ -123,13 +126,18 @@ fun Modifier.shimmerEffect(): Modifier = composed {
         ), label = "ShimmerAnimation"
     )
 
-    background(
-        Brush.linearGradient(
-            colors = shimmerColors,
-            start = Offset(x = translateAnim.value - 200, y = translateAnim.value),
-            end = Offset(x = translateAnim.value + 200, y = translateAnim.value + 500)
+    // Read the animated value inside drawBehind so each frame only invalidates
+    // the draw phase instead of recomposing every shimmering item.
+    drawBehind {
+        val translate = translateAnim.value
+        drawRect(
+            Brush.linearGradient(
+                colors = shimmerColors,
+                start = Offset(x = translate - 200, y = translate),
+                end = Offset(x = translate + 200, y = translate + 500)
+            )
         )
-    )
+    }
 }
 
 fun Long.formatTime(): String {
